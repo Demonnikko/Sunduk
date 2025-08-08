@@ -1,5 +1,9 @@
 {
   "name": "showsecret-chest",
   "version": "1.0.0",
-  "private": true
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "@vercel/kv": "^1.0.1"
+  }
 }
