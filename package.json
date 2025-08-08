@@ -1,8 +1,0 @@
-{
-  "name": "sunduk",
-  "private": true,
-  "type": "module",
-  "dependencies": {
-    "ioredis": "^5.4.1"
-  }
-}
