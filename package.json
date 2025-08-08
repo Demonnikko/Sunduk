@@ -1,9 +1,8 @@
 {
-  "name": "showsecret-chest",
-  "version": "1.0.0",
+  "name": "sunduk",
   "private": true,
   "type": "module",
   "dependencies": {
-    "@vercel/kv": "^1.0.1"
+    "ioredis": "^5.4.1"
   }
 }
