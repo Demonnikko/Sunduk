@@ -1,7 +1,7 @@
 {
-  "version": 2,
-  "routes": [
-    { "src": "/cashier", "dest": "/cashier.html" },
-    { "src": "/api/coupon", "dest": "/api/coupon.js" }
-  ]
+  "functions": {
+    "api/**/*.js": {
+      "runtime": "nodejs20.x"
+    }
+  }
 }
