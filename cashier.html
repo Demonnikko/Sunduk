@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Проверка купона — ШОУ «Секрет»</title>
+<style>
+:root{--bg:#000;--text:#eee;--gold:#CBA135;--mut:#9aa;--r:14px}
+*{box-sizing:border-box}html,body{height:100%}
+body{margin:0;background:#000;color:var(--text);font:500 16px/1.5 Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif}
+.wrap{min-height:100dvh;display:grid;place-items:center;padding:16px}
+.card{width:min(680px,94vw);background:#0b0b0f;border:1px solid #1f2026;border-radius:var(--r);box-shadow:0 24px 60px rgba(0,0,0,.6);padding:18px}
+h1{margin:0 0 6px;font:800 clamp(20px,4.6vw,28px)/1.2 Inter;letter-spacing:.02em;color:var(--gold);text-align:center}
+.codeRow{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin:8px 0 14px}
+.code{font:800 22px/1.1 ui-monospace,SFMono-Regular,Menlo,monospace;background:#11151b;border:1px solid #2b2d34;padding:8px 12px;border-radius:10px;color:#fff}
+.status{padding:10px 12px;border-radius:12px;background:#0e0f14;border:1px solid #24252c;margin:0 auto 12px;max-width:560px;text-align:center}
+.status.ok{border-color:#284a2d;background:linear-gradient(180deg,#0e1410,#0c120f);color:#cfead4}
+.status.bad{border-color:#4a2d2d;background:linear-gradient(180deg,#140e0e,#120c0c);color:#f0c9c9}
+.btnRow{display:flex;gap:8px;flex-wrap:wrap;justify-content:center}
+button{display:inline-flex;align-items:center;justify-content:center;gap:.5rem;padding:.8rem 1.1rem;border-radius:12px;min-height:44px;cursor:pointer;border:1px solid #2c2e36;background:#12141b;color:#fff;font:700 15px Inter;transition:.2s}
+.btnPrimary{border-color:transparent;color:#111;background:linear-gradient(160deg,#CBA135,#E7C776);box-shadow:0 14px 26px rgba(203,161,53,.22),inset 0 0 0 1px rgba(255,255,255,.18)}
+.btnPrimary:disabled{opacity:.6}
+.mut{color:var(--mut);text-align:center;margin-top:10px;font-size:.92rem}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="card">
+    <h1>Проверка купона</h1>
+    <div class="codeRow">
+      <span class="code" id="codeBox">—</span>
+      <button id="copyBtn" title="Скопировать">Скопировать</button>
+    </div>
+    <div id="status" class="status">Проверяем…</div>
+    <div class="btnRow">
+      <button class="btnPrimary" id="redeemBtn">Применить купон</button>
+    </div>
+    <p class="mut">После применения купон становится недействительным.</p>
+  </div>
+</div>
+<script>
+const qs = new URLSearchParams(location.search);
+const code = qs.get('code') || '';
+const codeBox = document.getElementById('codeBox');
+const statusEl = document.getElementById('status');
+const redeemBtn = document.getElementById('redeemBtn');
+const copyBtn = document.getElementById('copyBtn');
+
+codeBox.textContent = code || '—';
+copyBtn.onclick = async ()=>{ try{ await navigator.clipboard.writeText(location.href); copyBtn.textContent='Скопировано'; setTimeout(()=>copyBtn.textContent='Скопировать',900);}catch{} };
+
+async function refresh(){
+  if(!code){ statusEl.textContent='Нет кода в ссылке.'; statusEl.className='status bad'; redeemBtn.disabled=true; return; }
+  const r = await fetch(`/api/coupon?op=status&code=${encodeURIComponent(code)}`);
+  const j = await r.json();
+  if(!j.ok || !j.exists){ statusEl.textContent='Код не найден.'; statusEl.className='status bad'; redeemBtn.disabled=true; return; }
+  if(j.used){ statusEl.textContent='Купон уже использован.'; statusEl.className='status bad'; redeemBtn.disabled=true; return; }
+  statusEl.textContent = `Действительный купон: ${j.prize==='FREE'?'бесплатный билет':j.prize+'% скидка'}`;
+  statusEl.className='status ok';
+  redeemBtn.disabled=false;
+}
+
+redeemBtn.onclick = async ()=>{
+  const pin = prompt('PIN кассира:'); if(!pin) return;
+  redeemBtn.disabled=true;
+  const r = await fetch(`/api/coupon?op=redeem&code=${encodeURIComponent(code)}`, {
+    method:'POST', headers:{'content-type':'application/json'}, body: JSON.stringify({ pin })
+  });
+  const j = await r.json().catch(()=>({}));
+  if(j.ok && j.redeemed){ statusEl.textContent='Купон применён. Теперь недействителен.'; statusEl.className='status bad'; }
+  else if(j.alreadyUsed){ statusEl.textContent='Купон уже был применён ранее.'; statusEl.className='status bad'; }
+  else if(j.error==='bad_pin'){ alert('Неверный PIN'); }
+  else{ alert('Не удалось применить.'); }
+  redeemBtn.disabled=false;
+  await refresh();
+};
+
+refresh();
+</script>
+</body>
+</html>

@@ -1,0 +1,498 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>ШОУ «Секрет» — Сундук удачи (премиум)</title>
+<meta name="theme-color" content="#000">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@800;900&family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+
+<style>
+:root{
+  --bg:#000; --ink:#ECECF2; --muted:#A6AFBD;
+  --goldA:#FFF2C8; --goldB:#F5CE76; --goldC:#CD9430; --halo:rgba(255,208,98,.28);
+  --panel:#0a0a0a; --line:rgba(255,255,255,.12);
+  --glass1:rgba(255,255,255,.12); --glass2:rgba(255,255,255,.06); --glass3:rgba(255,255,255,.03);
+  --vh:100svh; --persp: 1100px;
+}
+
+/* base */
+*,*::before,*::after{box-sizing:border-box}
+html,body{height:100%;margin:0;background:#000;color:var(--ink)}
+body{font:16px/1.6 'Inter',system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;overflow-x:hidden;-webkit-font-smoothing:antialiased}
+
+/* cinematic bg */
+body::before{
+  content:""; position:fixed; inset:-12vmax; z-index:0; pointer-events:none;
+  background:
+    radial-gradient(120% 90% at 50% -10%, rgba(255,255,255,.06), transparent 58%),
+    radial-gradient(150% 120% at -20% 120%, rgba(243,200,109,.05), transparent 65%),
+    #000;
+}
+
+/* floating dust */
+.dust{position:fixed; inset:0; z-index:0; pointer-events:none; overflow:hidden}
+.dot{position:absolute; width:2px; height:2px; background:#fff; opacity:.08; border-radius:50%;
+     animation:rise linear infinite; filter:blur(.3px)}
+@keyframes rise{from{transform:translateY(100vh)}to{transform:translateY(-10vh)}}
+
+/* layout */
+.wrap{position:relative; z-index:1; min-height:var(--vh); display:grid; grid-template-rows:auto 1fr auto;
+      padding: calc(max(14px, env(safe-area-inset-top))) 14px calc(max(18px, env(safe-area-inset-bottom)))}
+
+/* header */
+.header{display:grid;place-items:center;text-align:center;margin-bottom:10px}
+.h-title{
+  font-family:'Cinzel',serif; font-weight:900; letter-spacing:.06em;
+  font-size: clamp(22px,4.2vw,44px); line-height:1.12;
+  background:linear-gradient(100deg,#fff,#e7e7e7,#c8c8c8);
+  -webkit-background-clip:text;background-clip:text;color:transparent; position:relative;
+}
+.h-title::after{
+  content:""; position:absolute; inset:0; background:
+    linear-gradient(120deg, transparent 45%, rgba(255,255,255,.8) 50%, transparent 55%);
+  background-size:220% 100%; mix-blend-mode:overlay; pointer-events:none;
+  animation:glint 6s linear infinite;
+}
+@keyframes glint{0%{background-position:200% 0}100%{background-position:-200% 0}}
+.h-sub{color:var(--muted); font-weight:600; font-size:clamp(14px,2.2vw,16px); margin-top:6px}
+
+/* stage */
+.stage{perspective:var(--persp); perspective-origin:50% 40%}
+.board{
+  width:min(1100px, 96vw); margin:0 auto;
+  background:linear-gradient(180deg, #0a0a0a, #070709);
+  border:1px solid var(--line); border-radius:22px;
+  padding: clamp(14px,2.6vw,22px);
+  box-shadow: 0 30px 80px rgba(0,0,0,.85);
+  transform-style:preserve-3d;
+}
+
+/* top: chest + badges */
+.top{display:grid; grid-template-columns:1fr; gap:16px; align-items:center; justify-items:center; margin-bottom:14px}
+.info{display:flex; gap:10px 16px; flex-wrap:wrap; justify-content:center; align-items:center; color:var(--muted)}
+.badge{
+  padding:8px 12px; border-radius:999px;
+  background:linear-gradient(180deg, var(--glass1), var(--glass3));
+  border:1px solid var(--glass2);
+  font-weight:800; backdrop-filter:saturate(130%) blur(8px);
+  box-shadow: inset 0 0 1px rgba(255,255,255,.12);
+}
+
+/* ===== 3D chest ===== */
+.chest-wrap{position:relative; width:min(640px, 94vw); aspect-ratio:16/10; transform-style:preserve-3d; will-change:transform}
+svg{width:100%; height:100%; display:block}
+.chest-glow{position:absolute; inset:auto 10% 10% 10%; height:36%; border-radius:14px;
+  background:radial-gradient(120% 140% at 50% 0%, rgba(255,223,145,.78), rgba(255,176,72,.22) 55%, transparent 70%);
+  filter: blur(12px); opacity:0; pointer-events:none; transition:opacity .35s ease}
+.chest.open + .chest-glow{opacity:1}
+
+#lockRing{transition:filter .18s ease}
+.hit #lockRing{ filter: drop-shadow(0 0 16px rgba(255,214,94,.95)) }
+
+#lidGroup{ transform-origin: 320px 96px; transform-box: fill-box;
+  transform: rotateX(0deg) translateZ(0px); transition: transform .42s cubic-bezier(.18,.9,.16,1) }
+.chest.open #lidGroup{ transform: rotateX(36deg) translateZ(12px) }
+#lidShadow{ opacity:.0; transition:opacity .35s ease }
+.chest.open #lidShadow{ opacity:.6 }
+
+/* prize pill */
+.prize{margin-top:8px; min-height:2.2em; display:grid; place-items:center; text-align:center; font-weight:800}
+.prize .pill{
+  display:inline-block; padding:10px 14px; border-radius:999px;
+  background:linear-gradient(180deg, var(--glass1), var(--glass3));
+  border:1px solid var(--glass2);
+  backdrop-filter:saturate(130%) blur(8px); box-shadow: inset 0 0 1px rgba(255,255,255,.12);
+}
+
+/* keys grid */
+.grid{ margin-top:16px; display:grid; gap:12px; grid-template-columns: repeat(auto-fit, minmax(62px, 1fr)); transform-style:preserve-3d}
+.key{
+  position:relative; display:grid; place-items:center; height:62px; border-radius:14px; isolation:isolate;
+  background:linear-gradient(180deg, #0b0b10, #0b0b12 60%, #0c0c14);
+  border:1px solid rgba(255,255,255,.1);
+  cursor:pointer; transition:transform .2s ease, box-shadow .2s ease, border-color .2s ease, opacity .2s ease;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.06), 0 10px 18px rgba(0,0,0,.35);
+  transform: translateZ(0);
+}
+.key::before{
+  content:""; position:absolute; inset:0; border-radius:14px;
+  background:linear-gradient(160deg, rgba(255,255,255,.14), rgba(255,255,255,0) 40%);
+  mix-blend-mode:soft-light; opacity:.35; pointer-events:none
+}
+.key:hover{ transform:translate3d(0,-4px,8px) rotateX(3deg); border-color:rgba(255,255,255,.18) }
+.key:active{ transform:translate3d(0,-1px,3px) }
+.key svg{width:32px;height:32px;display:block; filter: drop-shadow(0 10px 14px rgba(0,0,0,.45))}
+
+/* flying key ghost */
+.flying{ position:fixed; left:0; top:0; width:32px; height:32px; pointer-events:none; z-index:60;
+  will-change:transform,opacity; transform:translate3d(0,0,0); filter: drop-shadow(0 10px 18px rgba(0,0,0,.6))}
+
+/* confetti */
+#confetti{position:fixed; inset:0; pointer-events:none; z-index:70; display:none}
+
+/* gold ticket */
+#ticketScene{position:fixed; inset:0; pointer-events:none; z-index:72; display:none}
+.ticket{
+  position:absolute; left:50%; top:50%;
+  transform: translate3d(-50%,-50%,0) rotateX(18deg) rotateY(-12deg) scale(.38);
+  width:min(86vw,600px); aspect-ratio: 16/7;
+  background:linear-gradient(160deg,var(--goldA),var(--goldB));
+  border-radius:18px; display:grid; place-items:center;
+  font-family:'Cinzel',serif; font-weight:900; letter-spacing:.06em; color:#111; text-align:center;
+  box-shadow: 0 22px 48px var(--halo);
+}
+.ticket::after{content:""; position:absolute; inset:-7px; border-radius:22px; box-shadow: inset 0 0 0 1px rgba(255,255,255,.2)}
+.ticketText{font-size:clamp(22px,5.2vw,44px); padding:10px 16px}
+.rays{position:absolute; inset:-30vh -30vw; background:radial-gradient(closest-side, rgba(255,230,160,.5), transparent 70%); opacity:0; transition:opacity .3s ease}
+.ticket.show .rays{opacity:1}
+
+/* 50% banner */
+.winBanner{position:fixed; inset:0; display:none; place-items:center; z-index:74; text-align:center}
+.winBanner .inner{
+  padding:16px 20px; border-radius:16px;
+  background:linear-gradient(160deg, var(--goldA), var(--goldB));
+  box-shadow: 0 14px 38px var(--halo), inset 0 0 0 1px rgba(255,255,255,.18);
+  font-family:'Cinzel',serif; font-weight:900; letter-spacing:.08em; color:#111;
+  font-size: clamp(20px, 5vw, 40px);
+}
+
+/* wide */
+@media (min-width:900px){ .top{ grid-template-columns: 1.1fr .9fr } }
+
+/* reduced motion */
+@media (prefers-reduced-motion: reduce){
+  *{animation:none !important; transition:none !important}
+}
+</style>
+</head>
+<body>
+<div class="dust" aria-hidden="true" id="dust"></div>
+<canvas id="confetti"></canvas>
+
+<div id="ticketScene" aria-hidden="true">
+  <div class="ticket" id="ticket">
+    <div class="rays"></div>
+    <div class="ticketText">БЕСПЛАТНЫЙ БИЛЕТ</div>
+  </div>
+</div>
+
+<div class="winBanner" id="winBanner"><div class="inner" id="winText">Поздравляем! Скидка 50%!</div></div>
+
+<main class="wrap">
+  <header class="header">
+    <div class="h-title">ШОУ «Секрет» — Сундук удачи</div>
+    <div class="h-sub">Выберите ключ и попробуйте открыть сундук</div>
+  </header>
+
+  <section class="stage">
+    <div class="board" id="board">
+      <div class="top">
+        <!-- chest -->
+        <div class="chest-wrap" id="chestWrap">
+          <svg class="chest" viewBox="0 0 640 400" id="chest" aria-label="Сундук">
+            <ellipse cx="320" cy="360" rx="230" ry="22" fill="rgba(0,0,0,.55)"/>
+            <!-- base -->
+            <g id="base">
+              <rect x="80" y="150" width="480" height="180" rx="18" fill="#1a140a" stroke="#6b5222" stroke-width="6"/>
+              <rect x="92" y="162" width="456" height="156" rx="14" fill="url(#wood)"/>
+              <g>
+                <rect x="80" y="190" width="480" height="12" rx="3" fill="url(#goldBand)"/>
+                <rect x="80" y="238" width="480" height="12" rx="3" fill="url(#goldBand)"/>
+                <rect x="80" y="286" width="480" height="12" rx="3" fill="url(#goldBand)"/>
+                <g fill="#b08a2a">
+                  <circle cx="110" cy="196" r="3"/><circle cx="530" cy="196" r="3"/>
+                  <circle cx="110" cy="244" r="3"/><circle cx="530" cy="244" r="3"/>
+                  <circle cx="110" cy="292" r="3"/><circle cx="530" cy="292" r="3"/>
+                </g>
+              </g>
+            </g>
+            <!-- lid -->
+            <g id="lidGroup">
+              <path d="M80 80 Q320 10 560 80 v70 H80 Z" fill="#1a140a" stroke="#6b5222" stroke-width="6"/>
+              <path d="M92 90 Q320 24 548 90 v48 H92 Z" fill="url(#wood)"/>
+              <path d="M92 126 H548 V138 H92 Z" fill="url(#goldBand)"/>
+              <path id="lidShadow" d="M92 138 H548 V150 H92 Z" fill="rgba(0,0,0,.55)"/>
+            </g>
+            <!-- lock -->
+            <g id="lock" transform="translate(300,190)">
+              <circle id="lockRing" cx="20" cy="20" r="34" fill="#2a200c" stroke="#b28b2a" stroke-width="5"/>
+              <rect x="6" y="20" width="28" height="42" rx="6" fill="#cfaa3c" stroke="#6e5416" stroke-width="4"/>
+              <circle cx="20" cy="40" r="5" fill="#5b430f"/>
+            </g>
+            <defs>
+              <linearGradient id="wood" x1="0" y1="0" x2="1" y2="0">
+                <stop offset="0" stop-color="#3a2b14"/><stop offset="1" stop-color="#5c421c"/>
+              </linearGradient>
+              <linearGradient id="goldBand" x1="0" y1="0" x2="1" y2="1">
+                <stop offset="0" stop-color="#FFF2C6"/><stop offset=".45" stop-color="#F4CD72"/><stop offset="1" stop-color="#C8922C"/>
+              </linearGradient>
+            </defs>
+          </svg>
+          <div class="chest-glow"></div>
+          <div class="prize"><div class="pill" id="prizeText"></div></div>
+        </div>
+
+        <!-- info badges -->
+        <div class="info">
+          <span class="badge" id="tries">Осталось попыток: 3</span>
+          <span class="badge">Ключей: 50</span>
+        </div>
+      </div>
+
+      <!-- keys -->
+      <div class="grid" id="grid" aria-label="Поле ключей"></div>
+    </div>
+  </section>
+
+  <footer class="header">
+    <div class="h-sub">Удачный ключ подсветит замок, крышка приоткроется и загорится внутренний свет.</div>
+  </footer>
+</main>
+
+<script>
+/* ===== toggles ===== */
+const TEST_MODE = true;                             // ← включено: первый клик 50%, второй — FREE, третий — 20%
+const TEST_SEQUENCE = ['50','free','20','15','10'];
+
+/* accurate vh for iOS notch */
+(function(){ const set=()=>document.documentElement.style.setProperty('--vh', window.innerHeight+'px');
+set(); addEventListener('resize', set,{passive:true}); addEventListener('orientationchange', set,{passive:true});})();
+
+/* floating dust */
+(function(){
+  const d = document.getElementById('dust');
+  const n = (innerWidth<480)? 20 : 36;
+  for(let i=0;i<n;i++){
+    const s = document.createElement('span'); s.className='dot';
+    s.style.left = (Math.random()*100)+'%';
+    s.style.animationDuration = (18+Math.random()*22)+'s';
+    s.style.animationDelay = (-Math.random()*20)+'s';
+    d.appendChild(s);
+  }
+})();
+
+/* state */
+let attempts = 3;
+const TOTAL_KEYS = 50;
+const triesEl   = document.getElementById('tries');
+const prizeText = document.getElementById('prizeText');
+
+const PRIZE_WEIGHTS = [
+  {code:'10',  label:'10% скидка',       weight: 48, confetti:false, ticket:false},
+  {code:'15',  label:'15% скидка',       weight: 32, confetti:false, ticket:false},
+  {code:'20',  label:'20% скидка',       weight: 20, confetti:false, ticket:false},
+  {code:'50',  label:'50% скидка',       weight: 5,  confetti:true,  ticket:false},
+  {code:'free',label:'Бесплатный билет', weight: 2,  confetti:true,  ticket:true }
+];
+
+/* lock center for flight */
+let lockCenter = {x:0,y:0};
+function computeLockCenter(){
+  const r = document.getElementById('lock').getBoundingClientRect();
+  lockCenter = {x: r.left + r.width/2, y: r.top + r.height/2};
+}
+addEventListener('load', computeLockCenter);
+addEventListener('resize', ()=>{ clearTimeout(window.__lk); window.__lk=setTimeout(computeLockCenter,120); });
+
+/* golden key SVG (глянец) */
+function keySVG(){
+  return `
+  <svg viewBox="0 0 64 64" aria-hidden="true">
+    <defs>
+      <linearGradient id="gG" x1="0" y1="0" x2="1" y2="1">
+        <stop offset="0" stop-color="#FFF3C4"/>
+        <stop offset=".45" stop-color="#FAD572"/>
+        <stop offset=".72" stop-color="#E8B64B"/>
+        <stop offset="1" stop-color="#C8902A"/>
+      </linearGradient>
+      <linearGradient id="shine" x1="0" y1="0" x2="1" y2="0">
+        <stop offset="0" stop-color="rgba(255,255,255,.7)"/>
+        <stop offset=".25" stop-color="rgba(255,255,255,.0)"/>
+      </linearGradient>
+    </defs>
+    <circle cx="20" cy="20" r="12" fill="url(#gG)"/>
+    <circle cx="20" cy="20" r="7" fill="#0b0b0f" opacity=".85"/>
+    <rect x="20" y="18" width="30" height="4" rx="2" fill="url(#gG)"/>
+    <rect x="46" y="22" width="4" height="6" rx="1" fill="url(#gG)"/>
+    <rect x="40" y="22" width="4" height="8" rx="1" fill="url(#gG)"/>
+    <rect x="20" y="18" width="16" height="2" rx="1" fill="url(#shine)" opacity=".55"/>
+  </svg>`;
+}
+
+/* render keys */
+const grid = document.getElementById('grid');
+(function render(){
+  for(let i=0;i<TOTAL_KEYS;i++){
+    const btn=document.createElement('button');
+    btn.className='key'; btn.type='button'; btn.setAttribute('aria-label','Ключ '+(i+1));
+    btn.innerHTML=keySVG();
+    btn.addEventListener('click', ()=>onPick(btn));
+    grid.appendChild(btn);
+  }
+})();
+
+/* prize choice */
+let testIdx = 0;
+function pickPrize(){
+  if(TEST_MODE){
+    const code = TEST_SEQUENCE[testIdx % TEST_SEQUENCE.length]; testIdx++;
+    return PRIZE_WEIGHTS.find(p=>p.code===code) || PRIZE_WEIGHTS[0];
+  }
+  const sum = PRIZE_WEIGHTS.reduce((a,b)=>a+b.weight,0);
+  let r = Math.random()*sum;
+  for(const p of PRIZE_WEIGHTS){ if((r-=p.weight) <= 0) return p; }
+  return PRIZE_WEIGHTS[0];
+}
+
+/* chest anims */
+const chest = document.getElementById('chest');
+function openChestFlash(){
+  chest.classList.add('open','hit');
+  setTimeout(()=>chest.classList.remove('hit'), 280);
+  setTimeout(()=>chest.classList.remove('open'), 1150);
+}
+
+/* parabolic flight */
+function flyBezier(start, end, t){
+  const cx = (start.x + end.x)/2;
+  const cy = Math.min(start.y, end.y) - Math.max(80, innerHeight*0.08);
+  const x = (1-t)*(1-t)*start.x + 2*(1-t)*t*cx + t*t*end.x;
+  const y = (1-t)*(1-t)*start.y + 2*(1-t)*t*cy + t*t*end.y;
+  return {x,y};
+}
+function flyToLock(fromEl){
+  const rect = fromEl.getBoundingClientRect();
+  const start = {x: rect.left + rect.width/2, y: rect.top + rect.height/2};
+  const end   = {x: lockCenter.x, y: lockCenter.y};
+  const ghost = document.createElement('div');
+  ghost.className='flying';
+  ghost.innerHTML = fromEl.querySelector('svg').outerHTML;
+  document.body.appendChild(ghost);
+
+  let t0=0, dur=680;
+  return new Promise(res=>{
+    function step(ts){
+      if(!t0) t0=ts;
+      const p = Math.min(1,(ts-t0)/dur);
+      const {x,y} = flyBezier(start,end,p);
+      ghost.style.transform = `translate3d(${x}px, ${y}px, 0) scale(${1+0.18*p})`;
+      if(p<1) requestAnimationFrame(step); else { ghost.style.opacity='0'; setTimeout(()=>{ ghost.remove(); res(); },120); }
+    }
+    requestAnimationFrame(step);
+  });
+}
+
+/* confetti */
+const confettiCanvas = document.getElementById('confetti');
+const ctx = confettiCanvas.getContext('2d'); let confettiTimer;
+function boomConfetti(duration=2400, density=1){
+  const w = confettiCanvas.width = Math.floor(innerWidth);
+  const h = confettiCanvas.height = Math.floor(innerHeight);
+  confettiCanvas.style.display='block';
+  const mobile = w<460 || window.devicePixelRatio>2;
+  const N = Math.min(260*density, mobile? 140 : 240);
+  const parts = new Array(N).fill(0).map(()=>({
+    x: Math.random()*w, y: -20 - Math.random()*h*0.3,
+    r: 3+Math.random()*6, vx: -1.6 + Math.random()*3.2, vy: 2.8 + Math.random()*3.6,
+    a: Math.random()*Math.PI*2, spin: (Math.random()>.5?1:-1)*(0.05+Math.random()*0.1),
+    shape: (Math.random()<.25)?'tri':'rect',
+    c: (Math.random()*6)|0
+  }));
+  const colors = ['#FFD166','#F49735','#FAD961','#F76B1C','#FFF3B0','#FFE29A'];
+  let t0=performance.now(); cancelAnimationFrame(confettiTimer);
+  (function tick(t){
+    ctx.clearRect(0,0,w,h);
+    for(let i=0;i<N;i++){
+      const p=parts[i]; p.x+=p.vx; p.y+=p.vy; p.a+=p.spin;
+      ctx.save(); ctx.translate(p.x,p.y); ctx.rotate(p.a);
+      ctx.fillStyle = colors[p.c];
+      if(p.shape==='tri'){
+        ctx.beginPath(); ctx.moveTo(0,-p.r); ctx.lineTo(p.r,p.r); ctx.lineTo(-p.r,p.r); ctx.closePath(); ctx.fill();
+      }else{
+        ctx.fillRect(-p.r/2,-p.r/2,p.r,p.r);
+      }
+      ctx.restore();
+      if(p.y>h+40){ p.y=-20; p.x=Math.random()*w; }
+    }
+    if(t-t0<duration) confettiTimer=requestAnimationFrame(tick); else confettiCanvas.style.display='none';
+  })(t0);
+}
+
+/* golden ticket */
+const ticketScene = document.getElementById('ticketScene');
+const ticket = document.getElementById('ticket');
+function celebrateFreeTicket(){
+  ticketScene.style.display='block';
+  ticket.style.opacity='0';
+  ticket.style.transform='translate3d(-50%,-50%,0) rotateX(28deg) rotateY(-16deg) scale(.34)';
+  requestAnimationFrame(()=>{
+    ticket.style.transition='transform .8s cubic-bezier(.22,.8,.16,1), opacity .35s ease';
+    ticket.style.opacity='1';
+    ticket.classList.add('show');
+    ticket.style.transform='translate3d(-50%,-50%,0) rotateX(0deg) rotateY(0deg) scale(1)';
+  });
+  boomConfetti(3000, 1.4);
+  navigator.vibrate?.([25,40,25]);
+  setTimeout(()=>{ ticket.style.transform='translate3d(-50%,-50%,0) scale(.96)'; }, 1900);
+  setTimeout(()=>{
+    ticketScene.style.display='none';
+    ticket.classList.remove('show');
+    ticket.style.transition='none'; ticket.style.opacity='1';
+  }, 3300);
+}
+
+/* 50% banner */
+const winBanner = document.getElementById('winBanner');
+const winText   = document.getElementById('winText');
+function celebrate50(){
+  winText.textContent='Поздравляем! Скидка 50%!';
+  winBanner.style.display='grid';
+  boomConfetti(2400, 1.1);
+  navigator.vibrate?.(60);
+  setTimeout(()=>{ winBanner.style.display='none'; }, 2000);
+}
+
+/* click handler */
+async function onPick(btn){
+  if(attempts<=0 || btn.disabled) return;
+  attempts--; triesEl.textContent = 'Осталось попыток: '+attempts;
+  btn.disabled=true; btn.style.opacity='.55';
+
+  await flyToLock(btn);
+  openChestFlash();
+
+  const prize = pickPrize();
+  prizeText.textContent = 'Поздравляем! Вы выиграли: '+prize.label;
+
+  if(prize.ticket){ celebrateFreeTicket(); }
+  else if(prize.confetti){ celebrate50(); }
+
+  if(attempts<=0){
+    document.querySelectorAll('button.key:not([disabled])').forEach(b=>{ b.disabled=true; b.style.opacity='.35'; b.style.cursor='default'; });
+  }
+}
+
+/* parallax tilt */
+(function(){
+  const wrap = document.getElementById('chestWrap');
+  const board = document.getElementById('board');
+  let rx=0, ry=0, trX=0, trY=0;
+  const lerp=(a,b,t)=>a+(b-a)*t;
+  (function loop(){ rx=lerp(rx,trY*.08,.08); ry=lerp(ry,trX*.1,.08); wrap.style.transform=`rotateX(${rx}deg) rotateY(${ry}deg)`; requestAnimationFrame(loop)})();
+  board.addEventListener('pointermove',e=>{
+    const r=board.getBoundingClientRect();
+    const x=(e.clientX-r.left)/r.width-0.5;
+    const y=(e.clientY-r.top)/r.height-0.5;
+    trX = x*10; trY = -y*8;
+  },{passive:true});
+  board.addEventListener('pointerleave',()=>{ trX=0; trY=0; },{passive:true});
+})();
+</script>
+</body>
+</html>
