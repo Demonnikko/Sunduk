@@ -1,498 +1,309 @@
+<!-- ===================== game.html (игра: сундук + ключи + билеты) ===================== -->
 <!doctype html>
 <html lang="ru">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>ШОУ «Секрет» — Сундук удачи (премиум)</title>
-<meta name="theme-color" content="#000">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
+<title>ШОУ «Секрет» — Сундук удачи</title>
+<meta name="theme-color" content="#000"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@800;900&family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
-
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@800;900&family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
 <style>
+/* базовая тема */
 :root{
-  --bg:#000; --ink:#ECECF2; --muted:#A6AFBD;
-  --goldA:#FFF2C8; --goldB:#F5CE76; --goldC:#CD9430; --halo:rgba(255,208,98,.28);
-  --panel:#0a0a0a; --line:rgba(255,255,255,.12);
-  --glass1:rgba(255,255,255,.12); --glass2:rgba(255,255,255,.06); --glass3:rgba(255,255,255,.03);
-  --vh:100svh; --persp: 1100px;
+  --ink:#ECF2FF; --muted:#A9B3C3;
+  --woodA:#794626; --woodB:#4a2a15; --woodC:#2a160b;
+  --goldA:#fff4bf; --goldB:#ffc95a; --goldC:#ab7a22;
+  --glass1:rgba(255,255,255,.10); --glass2:rgba(255,255,255,.04);
+  --vh:100vh;
 }
-
-/* base */
-*,*::before,*::after{box-sizing:border-box}
-html,body{height:100%;margin:0;background:#000;color:var(--ink)}
-body{font:16px/1.6 'Inter',system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;overflow-x:hidden;-webkit-font-smoothing:antialiased}
-
-/* cinematic bg */
-body::before{
-  content:""; position:fixed; inset:-12vmax; z-index:0; pointer-events:none;
+*,:before,:after{box-sizing:border-box}
+html,body{height:100%;margin:0;background:#000;color:var(--ink);
+  font:15px/1.6 Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;overflow-x:hidden}
+body:before{content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;
   background:
-    radial-gradient(120% 90% at 50% -10%, rgba(255,255,255,.06), transparent 58%),
-    radial-gradient(150% 120% at -20% 120%, rgba(243,200,109,.05), transparent 65%),
-    #000;
-}
-
-/* floating dust */
-.dust{position:fixed; inset:0; z-index:0; pointer-events:none; overflow:hidden}
-.dot{position:absolute; width:2px; height:2px; background:#fff; opacity:.08; border-radius:50%;
-     animation:rise linear infinite; filter:blur(.3px)}
-@keyframes rise{from{transform:translateY(100vh)}to{transform:translateY(-10vh)}}
-
-/* layout */
-.wrap{position:relative; z-index:1; min-height:var(--vh); display:grid; grid-template-rows:auto 1fr auto;
-      padding: calc(max(14px, env(safe-area-inset-top))) 14px calc(max(18px, env(safe-area-inset-bottom)))}
-
-/* header */
-.header{display:grid;place-items:center;text-align:center;margin-bottom:10px}
-.h-title{
-  font-family:'Cinzel',serif; font-weight:900; letter-spacing:.06em;
-  font-size: clamp(22px,4.2vw,44px); line-height:1.12;
-  background:linear-gradient(100deg,#fff,#e7e7e7,#c8c8c8);
-  -webkit-background-clip:text;background-clip:text;color:transparent; position:relative;
-}
-.h-title::after{
-  content:""; position:absolute; inset:0; background:
-    linear-gradient(120deg, transparent 45%, rgba(255,255,255,.8) 50%, transparent 55%);
-  background-size:220% 100%; mix-blend-mode:overlay; pointer-events:none;
-  animation:glint 6s linear infinite;
-}
-@keyframes glint{0%{background-position:200% 0}100%{background-position:-200% 0}}
-.h-sub{color:var(--muted); font-weight:600; font-size:clamp(14px,2.2vw,16px); margin-top:6px}
-
-/* stage */
-.stage{perspective:var(--persp); perspective-origin:50% 40%}
-.board{
-  width:min(1100px, 96vw); margin:0 auto;
-  background:linear-gradient(180deg, #0a0a0a, #070709);
-  border:1px solid var(--line); border-radius:22px;
-  padding: clamp(14px,2.6vw,22px);
-  box-shadow: 0 30px 80px rgba(0,0,0,.85);
-  transform-style:preserve-3d;
-}
-
-/* top: chest + badges */
-.top{display:grid; grid-template-columns:1fr; gap:16px; align-items:center; justify-items:center; margin-bottom:14px}
-.info{display:flex; gap:10px 16px; flex-wrap:wrap; justify-content:center; align-items:center; color:var(--muted)}
-.badge{
-  padding:8px 12px; border-radius:999px;
-  background:linear-gradient(180deg, var(--glass1), var(--glass3));
-  border:1px solid var(--glass2);
-  font-weight:800; backdrop-filter:saturate(130%) blur(8px);
-  box-shadow: inset 0 0 1px rgba(255,255,255,.12);
-}
-
-/* ===== 3D chest ===== */
-.chest-wrap{position:relative; width:min(640px, 94vw); aspect-ratio:16/10; transform-style:preserve-3d; will-change:transform}
-svg{width:100%; height:100%; display:block}
-.chest-glow{position:absolute; inset:auto 10% 10% 10%; height:36%; border-radius:14px;
-  background:radial-gradient(120% 140% at 50% 0%, rgba(255,223,145,.78), rgba(255,176,72,.22) 55%, transparent 70%);
-  filter: blur(12px); opacity:0; pointer-events:none; transition:opacity .35s ease}
-.chest.open + .chest-glow{opacity:1}
-
-#lockRing{transition:filter .18s ease}
-.hit #lockRing{ filter: drop-shadow(0 0 16px rgba(255,214,94,.95)) }
-
-#lidGroup{ transform-origin: 320px 96px; transform-box: fill-box;
-  transform: rotateX(0deg) translateZ(0px); transition: transform .42s cubic-bezier(.18,.9,.16,1) }
-.chest.open #lidGroup{ transform: rotateX(36deg) translateZ(12px) }
-#lidShadow{ opacity:.0; transition:opacity .35s ease }
-.chest.open #lidShadow{ opacity:.6 }
-
-/* prize pill */
-.prize{margin-top:8px; min-height:2.2em; display:grid; place-items:center; text-align:center; font-weight:800}
-.prize .pill{
-  display:inline-block; padding:10px 14px; border-radius:999px;
-  background:linear-gradient(180deg, var(--glass1), var(--glass3));
-  border:1px solid var(--glass2);
-  backdrop-filter:saturate(130%) blur(8px); box-shadow: inset 0 0 1px rgba(255,255,255,.12);
-}
-
-/* keys grid */
-.grid{ margin-top:16px; display:grid; gap:12px; grid-template-columns: repeat(auto-fit, minmax(62px, 1fr)); transform-style:preserve-3d}
-.key{
-  position:relative; display:grid; place-items:center; height:62px; border-radius:14px; isolation:isolate;
-  background:linear-gradient(180deg, #0b0b10, #0b0b12 60%, #0c0c14);
-  border:1px solid rgba(255,255,255,.1);
-  cursor:pointer; transition:transform .2s ease, box-shadow .2s ease, border-color .2s ease, opacity .2s ease;
-  box-shadow: inset 0 1px 0 rgba(255,255,255,.06), 0 10px 18px rgba(0,0,0,.35);
-  transform: translateZ(0);
-}
-.key::before{
-  content:""; position:absolute; inset:0; border-radius:14px;
-  background:linear-gradient(160deg, rgba(255,255,255,.14), rgba(255,255,255,0) 40%);
-  mix-blend-mode:soft-light; opacity:.35; pointer-events:none
-}
-.key:hover{ transform:translate3d(0,-4px,8px) rotateX(3deg); border-color:rgba(255,255,255,.18) }
-.key:active{ transform:translate3d(0,-1px,3px) }
-.key svg{width:32px;height:32px;display:block; filter: drop-shadow(0 10px 14px rgba(0,0,0,.45))}
-
-/* flying key ghost */
-.flying{ position:fixed; left:0; top:0; width:32px; height:32px; pointer-events:none; z-index:60;
-  will-change:transform,opacity; transform:translate3d(0,0,0); filter: drop-shadow(0 10px 18px rgba(0,0,0,.6))}
-
-/* confetti */
-#confetti{position:fixed; inset:0; pointer-events:none; z-index:70; display:none}
-
-/* gold ticket */
-#ticketScene{position:fixed; inset:0; pointer-events:none; z-index:72; display:none}
+    radial-gradient(120% 70% at 50% -10%, rgba(255,255,255,.08), transparent 60%),
+    radial-gradient(120% 80% at 50% 120%, rgba(255,255,255,.06), transparent 70%),
+    #000}
+/* макет */
+.wrap{min-height:var(--vh);display:grid;grid-template-rows:auto 1fr auto;place-items:center;gap:14px;
+  padding:calc(8px + env(safe-area-inset-top)) 12px calc(14px + env(safe-area-inset-bottom))}
+header{text-align:center}
+h1{margin:0 6px;font-family:Cinzel,serif;font-weight:900;letter-spacing:.04em;
+  font-size:clamp(18px,5.5vw,28px)}
+.sub{color:#cfd6e4;margin-top:6px;font-size:clamp(12px,3.8vw,14px)}
+.stage{display:grid;gap:16px;place-items:center;width:min(1000px,98vw)}
+/* сундук */
+.chest{width:min(560px,94vw);position:relative;margin-top:6px}
+@media (min-width:660px){ .chest{width:min(680px,92vw)} }
+.chest .glow{position:absolute;left:6%;right:6%;bottom:34%;height:22%;
+  border-radius:18px;filter:blur(18px);
+  background:radial-gradient(120% 120% at 50% 100%, rgba(255,230,140,.55), rgba(255,160,40,.35), transparent 65%);
+  opacity:0;transition:opacity .35s ease}
+.chest.open .glow{opacity:1}
+.lid{height:130px;margin:0 10px;border-radius:18px 18px 10px 10px;
+  transform-origin:50% 100%;transform:perspective(700px) rotateX(0deg);
+  background:
+    radial-gradient(120% 100% at 50% -8%, rgba(255,255,255,.20), transparent 60%),
+    repeating-linear-gradient(0deg, rgba(0,0,0,.22) 0 3px, transparent 3px 9px),
+    linear-gradient(180deg,#945a30,#5a3219 72%,#2a160b);
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,.06),
+             inset 0 12px 24px rgba(255,255,255,.10),
+             inset 0 -12px 24px rgba(0,0,0,.55)}
+.chest.open .lid{animation:openLid .6s cubic-bezier(.2,.8,.2,1) forwards}
+@keyframes openLid{ to{ transform:perspective(700px) rotateX(-62deg) } }
+.band{height:14px;margin:12px 10px;border-radius:9px;
+  background:linear-gradient(180deg,var(--goldA),var(--goldB) 60%,var(--goldC));
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.6), inset 0 -2px 0 rgba(0,0,0,.35)}
+.base{height:150px;margin:0 10px;border-radius:10px 10px 18px 18px;
+  background:
+    repeating-linear-gradient(0deg, rgba(0,0,0,.25) 0 3px, transparent 3px 9px),
+    linear-gradient(180deg,var(--woodA),var(--woodB) 62%,var(--woodC));
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,.06),
+             inset 0 16px 28px rgba(255,255,255,.08),
+             inset 0 -18px 28px rgba(0,0,0,.55),
+             0 28px 60px rgba(0,0,0,.55)}
+.lock{position:absolute;left:50%;bottom:92px;transform:translateX(-50%);
+  width:78px;height:90px;border-radius:12px;
+  background:linear-gradient(180deg,var(--goldA),var(--goldB) 60%,var(--goldC));
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.65), inset 0 -2px 0 rgba(0,0,0,.4), 0 16px 40px rgba(0,0,0,.45)}
+.lock:before{content:"";position:absolute;left:50%;top:-46px;transform:translateX(-50%);
+  width:94px;height:70px;border-radius:36px 36px 0 0;border:9px solid var(--goldB);border-bottom:0;
+  background:linear-gradient(180deg,transparent,rgba(0,0,0,.15));
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.6)}
+.hole{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);
+  width:20px;height:30px;background:#2b1c05;border-radius:8px 8px 12px 12px;box-shadow:0 0 0 2px rgba(0,0,0,.35) inset}
+.hole:after{content:"";position:absolute;left:50%;top:-13px;transform:translateX(-50%);
+  width:24px;height:24px;border-radius:50%;background:#2b1c05;box-shadow:0 0 0 2px rgba(0,0,0,.35) inset}
+/* подсказки */
+.hud{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin-top:10px}
+.pill{display:inline-grid;place-items:center;padding:8px 12px;border-radius:999px;
+  font-weight:900;letter-spacing:.02em;font-size:13px;color:#d7dfef;
+  background:linear-gradient(180deg,var(--glass1),var(--glass2));
+  box-shadow:0 0 0 1px rgba(255,255,255,.08) inset, 0 10px 26px rgba(0,0,0,.35)}
+/* ключи */
+.keys{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px;width:100%;max-width:980px;margin:6px auto}
+@media (min-width:600px){ .keys{grid-template-columns:repeat(8,1fr)} }
+@media (min-width:900px){ .keys{grid-template-columns:repeat(10,1fr)} }
+.key{position:relative;aspect-ratio:2.4/1;display:grid;place-items:center;border-radius:14px;cursor:pointer;border:0;background:transparent;padding:0}
+.key:before{content:"";position:absolute;inset:0;border-radius:14px;background:linear-gradient(180deg,var(--glass1),var(--glass2));
+  box-shadow:0 0 0 1px rgba(255,255,255,.06) inset, 0 8px 22px rgba(0,0,0,.35)}
+.key svg{position:relative;width:94%;height:auto;filter:drop-shadow(0 6px 10px rgba(0,0,0,.45))}
+.key:active{transform:translateY(1px)}
+/* билеты + модалка */
+.overlay{position:fixed;inset:0;display:grid;place-items:center;background:rgba(0,0,0,.6);backdrop-filter:blur(6px);z-index:50}
+.modal{width:min(92vw,560px);border-radius:20px;padding:16px;border:1px solid rgba(255,255,255,.08);
+  background:linear-gradient(180deg, rgba(255,255,255,.05), rgba(0,0,0,.25));box-shadow:0 24px 80px rgba(0,0,0,.6)}
 .ticket{
-  position:absolute; left:50%; top:50%;
-  transform: translate3d(-50%,-50%,0) rotateX(18deg) rotateY(-12deg) scale(.38);
-  width:min(86vw,600px); aspect-ratio: 16/7;
-  background:linear-gradient(160deg,var(--goldA),var(--goldB));
-  border-radius:18px; display:grid; place-items:center;
-  font-family:'Cinzel',serif; font-weight:900; letter-spacing:.06em; color:#111; text-align:center;
-  box-shadow: 0 22px 48px var(--halo);
+  position:relative;border-radius:16px;padding:24px 20px 82px;text-align:center;color:#111;font-weight:900;letter-spacing:.02em;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.55), inset 0 -1px 0 rgba(0,0,0,.35), 0 36px 120px rgba(0,0,0,.35);
+  -webkit-mask:
+    radial-gradient(16px at left 22px center, transparent 98%, #000 100%) left,
+    radial-gradient(16px at right 22px center, transparent 98%, #000 100%) right;
+  -webkit-mask-size:51% 100%; -webkit-mask-repeat:no-repeat;
+          mask:
+    radial-gradient(16px at left 22px center, transparent 98%, #000 100%) left,
+    radial-gradient(16px at right 22px center, transparent 98%, #000 100%) right;
+  mask-size:51% 100%; mask-repeat:no-repeat;
 }
-.ticket::after{content:""; position:absolute; inset:-7px; border-radius:22px; box-shadow: inset 0 0 0 1px rgba(255,255,255,.2)}
-.ticketText{font-size:clamp(22px,5.2vw,44px); padding:10px 16px}
-.rays{position:absolute; inset:-30vh -30vw; background:radial-gradient(closest-side, rgba(255,230,160,.5), transparent 70%); opacity:0; transition:opacity .3s ease}
-.ticket.show .rays{opacity:1}
-
-/* 50% banner */
-.winBanner{position:fixed; inset:0; display:none; place-items:center; z-index:74; text-align:center}
-.winBanner .inner{
-  padding:16px 20px; border-radius:16px;
-  background:linear-gradient(160deg, var(--goldA), var(--goldB));
-  box-shadow: 0 14px 38px var(--halo), inset 0 0 0 1px rgba(255,255,255,.18);
-  font-family:'Cinzel',serif; font-weight:900; letter-spacing:.08em; color:#111;
-  font-size: clamp(20px, 5vw, 40px);
-}
-
-/* wide */
-@media (min-width:900px){ .top{ grid-template-columns: 1.1fr .9fr } }
-
-/* reduced motion */
-@media (prefers-reduced-motion: reduce){
-  *{animation:none !important; transition:none !important}
-}
+.t-steel{background:linear-gradient(135deg,#cdd4e1,#9aa5bb 55%,#6f788a)}
+.t-bronze{background:linear-gradient(135deg,#e9b188,#b8733f 55%,#7d471e)}
+.t-silver{background:linear-gradient(135deg,#f7f9fd,#d1d8e7 50%,#aab3c3)}
+.t-gold{background:linear-gradient(135deg,#fff2b6,#ffd36b 45%,#e0a522)}
+.t-plat{background:linear-gradient(135deg,#fafbff,#d8dcee 45%,#c3c8d8)}
+.ticket h3{margin:6px 6px 4px;font-family:Cinzel,serif;font-size:clamp(20px,5.2vw,26px)}
+.ticket p{margin:6px 6px;color:#222}
+.actions{position:absolute;left:0;right:0;bottom:14px;display:flex;gap:10px;justify-content:center}
+.btn{-webkit-appearance:none;appearance:none;border:0;cursor:pointer;border-radius:14px;padding:12px 18px;font-weight:900;letter-spacing:.02em;color:#fff;
+  text-shadow:0 1px 0 rgba(0,0,0,.35);
+  background:radial-gradient(120% 120% at 20% 10%, rgba(255,255,255,.25), transparent 35%),linear-gradient(180deg,#ff597a,#d9193b);
+  box-shadow:0 0 0 1px rgba(255,255,255,.12) inset, 0 12px 40px rgba(255,40,77,.35), 0 2px 0 rgba(0,0,0,.35) inset}
+form.grid{display:grid;gap:12px}
+.field{display:grid;gap:6px}
+.input{width:100%;padding:12px 14px;border-radius:12px;color:#eaf0ff;background:rgba(255,255,255,.06);
+  border:1px solid rgba(255,255,255,.12);outline:none}
+.msg{margin-top:6px;text-align:center}
+/* конфетти */
+canvas.confetti{position:fixed;inset:0;pointer-events:none;z-index:60}
+/* dev-панель (?test=1) */
+.dev{position:fixed;top:calc(8px + env(safe-area-inset-top));right:calc(8px + env(safe-area-inset-right));
+  display:none;gap:6px;align-items:center;background:rgba(255,255,255,.08);backdrop-filter:blur(8px);
+  padding:8px 10px;border-radius:12px;border:1px solid rgba(255,255,255,.1);z-index:80}
+.dev select,.dev button{background:rgba(0,0,0,.4);color:#fff;border:1px solid rgba(255,255,255,.15);padding:6px 8px;border-radius:8px}
 </style>
 </head>
 <body>
-<div class="dust" aria-hidden="true" id="dust"></div>
-<canvas id="confetti"></canvas>
+  <div class="wrap">
+    <header>
+      <h1>ШОУ «Секрет» · Сундук удачи</h1>
+      <div class="sub">Выберите ключ — удачный подсветит замок, крышка приоткроется и появится ваш приз</div>
+    </header>
 
-<div id="ticketScene" aria-hidden="true">
-  <div class="ticket" id="ticket">
-    <div class="rays"></div>
-    <div class="ticketText">БЕСПЛАТНЫЙ БИЛЕТ</div>
-  </div>
-</div>
-
-<div class="winBanner" id="winBanner"><div class="inner" id="winText">Поздравляем! Скидка 50%!</div></div>
-
-<main class="wrap">
-  <header class="header">
-    <div class="h-title">ШОУ «Секрет» — Сундук удачи</div>
-    <div class="h-sub">Выберите ключ и попробуйте открыть сундук</div>
-  </header>
-
-  <section class="stage">
-    <div class="board" id="board">
-      <div class="top">
-        <!-- chest -->
-        <div class="chest-wrap" id="chestWrap">
-          <svg class="chest" viewBox="0 0 640 400" id="chest" aria-label="Сундук">
-            <ellipse cx="320" cy="360" rx="230" ry="22" fill="rgba(0,0,0,.55)"/>
-            <!-- base -->
-            <g id="base">
-              <rect x="80" y="150" width="480" height="180" rx="18" fill="#1a140a" stroke="#6b5222" stroke-width="6"/>
-              <rect x="92" y="162" width="456" height="156" rx="14" fill="url(#wood)"/>
-              <g>
-                <rect x="80" y="190" width="480" height="12" rx="3" fill="url(#goldBand)"/>
-                <rect x="80" y="238" width="480" height="12" rx="3" fill="url(#goldBand)"/>
-                <rect x="80" y="286" width="480" height="12" rx="3" fill="url(#goldBand)"/>
-                <g fill="#b08a2a">
-                  <circle cx="110" cy="196" r="3"/><circle cx="530" cy="196" r="3"/>
-                  <circle cx="110" cy="244" r="3"/><circle cx="530" cy="244" r="3"/>
-                  <circle cx="110" cy="292" r="3"/><circle cx="530" cy="292" r="3"/>
-                </g>
-              </g>
-            </g>
-            <!-- lid -->
-            <g id="lidGroup">
-              <path d="M80 80 Q320 10 560 80 v70 H80 Z" fill="#1a140a" stroke="#6b5222" stroke-width="6"/>
-              <path d="M92 90 Q320 24 548 90 v48 H92 Z" fill="url(#wood)"/>
-              <path d="M92 126 H548 V138 H92 Z" fill="url(#goldBand)"/>
-              <path id="lidShadow" d="M92 138 H548 V150 H92 Z" fill="rgba(0,0,0,.55)"/>
-            </g>
-            <!-- lock -->
-            <g id="lock" transform="translate(300,190)">
-              <circle id="lockRing" cx="20" cy="20" r="34" fill="#2a200c" stroke="#b28b2a" stroke-width="5"/>
-              <rect x="6" y="20" width="28" height="42" rx="6" fill="#cfaa3c" stroke="#6e5416" stroke-width="4"/>
-              <circle cx="20" cy="40" r="5" fill="#5b430f"/>
-            </g>
-            <defs>
-              <linearGradient id="wood" x1="0" y1="0" x2="1" y2="0">
-                <stop offset="0" stop-color="#3a2b14"/><stop offset="1" stop-color="#5c421c"/>
-              </linearGradient>
-              <linearGradient id="goldBand" x1="0" y1="0" x2="1" y2="1">
-                <stop offset="0" stop-color="#FFF2C6"/><stop offset=".45" stop-color="#F4CD72"/><stop offset="1" stop-color="#C8922C"/>
-              </linearGradient>
-            </defs>
-          </svg>
-          <div class="chest-glow"></div>
-          <div class="prize"><div class="pill" id="prizeText"></div></div>
-        </div>
-
-        <!-- info badges -->
-        <div class="info">
-          <span class="badge" id="tries">Осталось попыток: 3</span>
-          <span class="badge">Ключей: 50</span>
-        </div>
+    <section class="stage">
+      <!-- сундук -->
+      <div class="chest" id="chest">
+        <div class="lid" id="lid"></div>
+        <div class="band"></div>
+        <div class="base"></div>
+        <div class="band" style="margin-top:10px"></div>
+        <div class="lock"><span class="hole"></span></div>
+        <div class="glow"></div>
       </div>
 
-      <!-- keys -->
-      <div class="grid" id="grid" aria-label="Поле ключей"></div>
-    </div>
-  </section>
+      <div class="hud">
+        <span class="pill">Попыток: <b>∞</b></span>
+        <span class="pill">Ключей: <b>50</b></span>
+      </div>
 
-  <footer class="header">
-    <div class="h-sub">Удачный ключ подсветит замок, крышка приоткроется и загорится внутренний свет.</div>
-  </footer>
-</main>
+      <!-- сетка ключей -->
+      <div id="grid" class="keys" aria-label="Ключи"></div>
+    </section>
+  </div>
+
+  <!-- dev tools -->
+  <div class="dev" id="dev">
+    <span style="font-weight:900">Тест-приз:</span>
+    <select id="force">
+      <option value="">случайный</option>
+      <option value="10">10%</option>
+      <option value="15">15%</option>
+      <option value="20">20%</option>
+      <option value="50">50%</option>
+      <option value="free">бесплатный билет</option>
+    </select>
+    <button id="clear">Закрыть билет</button>
+  </div>
+  <canvas class="confetti" id="confetti"></canvas>
 
 <script>
-/* ===== toggles ===== */
-const TEST_MODE = true;                             // ← включено: первый клик 50%, второй — FREE, третий — 20%
-const TEST_SEQUENCE = ['50','free','20','15','10'];
-
-/* accurate vh for iOS notch */
-(function(){ const set=()=>document.documentElement.style.setProperty('--vh', window.innerHeight+'px');
-set(); addEventListener('resize', set,{passive:true}); addEventListener('orientationchange', set,{passive:true});})();
-
-/* floating dust */
-(function(){
-  const d = document.getElementById('dust');
-  const n = (innerWidth<480)? 20 : 36;
-  for(let i=0;i<n;i++){
-    const s = document.createElement('span'); s.className='dot';
-    s.style.left = (Math.random()*100)+'%';
-    s.style.animationDuration = (18+Math.random()*22)+'s';
-    s.style.animationDelay = (-Math.random()*20)+'s';
-    d.appendChild(s);
-  }
-})();
-
-/* state */
-let attempts = 3;
-const TOTAL_KEYS = 50;
-const triesEl   = document.getElementById('tries');
-const prizeText = document.getElementById('prizeText');
-
+/* ====== распределение призов (можно крутить веса) ====== */
 const PRIZE_WEIGHTS = [
-  {code:'10',  label:'10% скидка',       weight: 48, confetti:false, ticket:false},
-  {code:'15',  label:'15% скидка',       weight: 32, confetti:false, ticket:false},
-  {code:'20',  label:'20% скидка',       weight: 20, confetti:false, ticket:false},
-  {code:'50',  label:'50% скидка',       weight: 5,  confetti:true,  ticket:false},
-  {code:'free',label:'Бесплатный билет', weight: 2,  confetti:true,  ticket:true }
+  {type:'10', w:40},{type:'15', w:25},{type:'20', w:20},{type:'50', w:10},{type:'free', w:5}
 ];
-
-/* lock center for flight */
-let lockCenter = {x:0,y:0};
-function computeLockCenter(){
-  const r = document.getElementById('lock').getBoundingClientRect();
-  lockCenter = {x: r.left + r.width/2, y: r.top + r.height/2};
+/* ключи */
+const grid = document.getElementById('grid');
+for(let i=0;i<50;i++){
+  const b = document.createElement('button'); b.className='key'; b.innerHTML = svgKey(i);
+  b.addEventListener('click',()=>pickKey(b)); grid.appendChild(b);
 }
-addEventListener('load', computeLockCenter);
-addEventListener('resize', ()=>{ clearTimeout(window.__lk); window.__lk=setTimeout(computeLockCenter,120); });
-
-/* golden key SVG (глянец) */
-function keySVG(){
+function svgKey(i){
+  const id = `g${i}`;
   return `
-  <svg viewBox="0 0 64 64" aria-hidden="true">
+  <svg viewBox="0 0 220 90" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
     <defs>
-      <linearGradient id="gG" x1="0" y1="0" x2="1" y2="1">
-        <stop offset="0" stop-color="#FFF3C4"/>
-        <stop offset=".45" stop-color="#FAD572"/>
-        <stop offset=".72" stop-color="#E8B64B"/>
-        <stop offset="1" stop-color="#C8902A"/>
+      <linearGradient id="${id}" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" stop-color="#FFF3B5"/><stop offset="55%" stop-color="#FFD36B"/><stop offset="100%" stop-color="#A7741D"/>
       </linearGradient>
-      <linearGradient id="shine" x1="0" y1="0" x2="1" y2="0">
-        <stop offset="0" stop-color="rgba(255,255,255,.7)"/>
-        <stop offset=".25" stop-color="rgba(255,255,255,.0)"/>
+      <linearGradient id="${id}h" x1="0" y1="0" x2="1" y2="1">
+        <stop offset="0%" stop-color="rgba(255,255,255,.65)"/><stop offset="100%" stop-color="rgba(255,255,255,0)"/>
       </linearGradient>
     </defs>
-    <circle cx="20" cy="20" r="12" fill="url(#gG)"/>
-    <circle cx="20" cy="20" r="7" fill="#0b0b0f" opacity=".85"/>
-    <rect x="20" y="18" width="30" height="4" rx="2" fill="url(#gG)"/>
-    <rect x="46" y="22" width="4" height="6" rx="1" fill="url(#gG)"/>
-    <rect x="40" y="22" width="4" height="8" rx="1" fill="url(#gG)"/>
-    <rect x="20" y="18" width="16" height="2" rx="1" fill="url(#shine)" opacity=".55"/>
+    <circle cx="44" cy="45" r="30" fill="url(#${id})"/>
+    <circle cx="44" cy="45" r="18" fill="rgba(0,0,0,.45)"/>
+    <rect x="76" y="40" width="92" height="10" rx="5" fill="url(#${id})"/>
+    <rect x="168" y="34" width="22" height="22" rx="5" fill="url(#${id})"/>
+    <rect x="188" y="28" width="24" height="12" rx="3" fill="url(#${id})"/>
+    <rect x="188" y="50" width="24" height="12" rx="3" fill="url(#${id})"/>
+    <rect x="78" y="40" width="88" height="10" rx="5" fill="url(#${id}h)"/>
   </svg>`;
 }
-
-/* render keys */
-const grid = document.getElementById('grid');
-(function render(){
-  for(let i=0;i<TOTAL_KEYS;i++){
-    const btn=document.createElement('button');
-    btn.className='key'; btn.type='button'; btn.setAttribute('aria-label','Ключ '+(i+1));
-    btn.innerHTML=keySVG();
-    btn.addEventListener('click', ()=>onPick(btn));
-    grid.appendChild(btn);
-  }
-})();
-
-/* prize choice */
-let testIdx = 0;
-function pickPrize(){
-  if(TEST_MODE){
-    const code = TEST_SEQUENCE[testIdx % TEST_SEQUENCE.length]; testIdx++;
-    return PRIZE_WEIGHTS.find(p=>p.code===code) || PRIZE_WEIGHTS[0];
-  }
-  const sum = PRIZE_WEIGHTS.reduce((a,b)=>a+b.weight,0);
-  let r = Math.random()*sum;
-  for(const p of PRIZE_WEIGHTS){ if((r-=p.weight) <= 0) return p; }
-  return PRIZE_WEIGHTS[0];
-}
-
-/* chest anims */
+/* dev-панель (?test=1) */
+const params = new URLSearchParams(location.search);
+const dev = document.getElementById('dev'); const forceSel = document.getElementById('force');
+if (params.has('test')) dev.style.display = 'flex';
+document.getElementById('clear').onclick=()=>{const o=document.querySelector('.overlay'); if(o) o.remove();};
+/* логика полёта ключа и открытия сундука */
 const chest = document.getElementById('chest');
-function openChestFlash(){
-  chest.classList.add('open','hit');
-  setTimeout(()=>chest.classList.remove('hit'), 280);
-  setTimeout(()=>chest.classList.remove('open'), 1150);
+function weighted(){
+  const f = forceSel.value; if (f) return f;
+  const total = PRIZE_WEIGHTS.reduce((a,b)=>a+b.w,0); let r = Math.random()*total;
+  for(const p of PRIZE_WEIGHTS){ if((r -= p.w) <= 0) return p.type; } return '10';
 }
-
-/* parabolic flight */
-function flyBezier(start, end, t){
-  const cx = (start.x + end.x)/2;
-  const cy = Math.min(start.y, end.y) - Math.max(80, innerHeight*0.08);
-  const x = (1-t)*(1-t)*start.x + 2*(1-t)*t*cx + t*t*end.x;
-  const y = (1-t)*(1-t)*start.y + 2*(1-t)*t*cy + t*t*end.y;
-  return {x,y};
-}
-function flyToLock(fromEl){
-  const rect = fromEl.getBoundingClientRect();
-  const start = {x: rect.left + rect.width/2, y: rect.top + rect.height/2};
-  const end   = {x: lockCenter.x, y: lockCenter.y};
-  const ghost = document.createElement('div');
-  ghost.className='flying';
-  ghost.innerHTML = fromEl.querySelector('svg').outerHTML;
-  document.body.appendChild(ghost);
-
-  let t0=0, dur=680;
-  return new Promise(res=>{
-    function step(ts){
-      if(!t0) t0=ts;
-      const p = Math.min(1,(ts-t0)/dur);
-      const {x,y} = flyBezier(start,end,p);
-      ghost.style.transform = `translate3d(${x}px, ${y}px, 0) scale(${1+0.18*p})`;
-      if(p<1) requestAnimationFrame(step); else { ghost.style.opacity='0'; setTimeout(()=>{ ghost.remove(); res(); },120); }
-    }
-    requestAnimationFrame(step);
-  });
-}
-
-/* confetti */
-const confettiCanvas = document.getElementById('confetti');
-const ctx = confettiCanvas.getContext('2d'); let confettiTimer;
-function boomConfetti(duration=2400, density=1){
-  const w = confettiCanvas.width = Math.floor(innerWidth);
-  const h = confettiCanvas.height = Math.floor(innerHeight);
-  confettiCanvas.style.display='block';
-  const mobile = w<460 || window.devicePixelRatio>2;
-  const N = Math.min(260*density, mobile? 140 : 240);
-  const parts = new Array(N).fill(0).map(()=>({
-    x: Math.random()*w, y: -20 - Math.random()*h*0.3,
-    r: 3+Math.random()*6, vx: -1.6 + Math.random()*3.2, vy: 2.8 + Math.random()*3.6,
-    a: Math.random()*Math.PI*2, spin: (Math.random()>.5?1:-1)*(0.05+Math.random()*0.1),
-    shape: (Math.random()<.25)?'tri':'rect',
-    c: (Math.random()*6)|0
-  }));
-  const colors = ['#FFD166','#F49735','#FAD961','#F76B1C','#FFF3B0','#FFE29A'];
-  let t0=performance.now(); cancelAnimationFrame(confettiTimer);
-  (function tick(t){
-    ctx.clearRect(0,0,w,h);
-    for(let i=0;i<N;i++){
-      const p=parts[i]; p.x+=p.vx; p.y+=p.vy; p.a+=p.spin;
-      ctx.save(); ctx.translate(p.x,p.y); ctx.rotate(p.a);
-      ctx.fillStyle = colors[p.c];
-      if(p.shape==='tri'){
-        ctx.beginPath(); ctx.moveTo(0,-p.r); ctx.lineTo(p.r,p.r); ctx.lineTo(-p.r,p.r); ctx.closePath(); ctx.fill();
-      }else{
-        ctx.fillRect(-p.r/2,-p.r/2,p.r,p.r);
-      }
-      ctx.restore();
-      if(p.y>h+40){ p.y=-20; p.x=Math.random()*w; }
-    }
-    if(t-t0<duration) confettiTimer=requestAnimationFrame(tick); else confettiCanvas.style.display='none';
-  })(t0);
-}
-
-/* golden ticket */
-const ticketScene = document.getElementById('ticketScene');
-const ticket = document.getElementById('ticket');
-function celebrateFreeTicket(){
-  ticketScene.style.display='block';
-  ticket.style.opacity='0';
-  ticket.style.transform='translate3d(-50%,-50%,0) rotateX(28deg) rotateY(-16deg) scale(.34)';
-  requestAnimationFrame(()=>{
-    ticket.style.transition='transform .8s cubic-bezier(.22,.8,.16,1), opacity .35s ease';
-    ticket.style.opacity='1';
-    ticket.classList.add('show');
-    ticket.style.transform='translate3d(-50%,-50%,0) rotateX(0deg) rotateY(0deg) scale(1)';
-  });
-  boomConfetti(3000, 1.4);
-  navigator.vibrate?.([25,40,25]);
-  setTimeout(()=>{ ticket.style.transform='translate3d(-50%,-50%,0) scale(.96)'; }, 1900);
-  setTimeout(()=>{
-    ticketScene.style.display='none';
-    ticket.classList.remove('show');
-    ticket.style.transition='none'; ticket.style.opacity='1';
-  }, 3300);
-}
-
-/* 50% banner */
-const winBanner = document.getElementById('winBanner');
-const winText   = document.getElementById('winText');
-function celebrate50(){
-  winText.textContent='Поздравляем! Скидка 50%!';
-  winBanner.style.display='grid';
-  boomConfetti(2400, 1.1);
-  navigator.vibrate?.(60);
-  setTimeout(()=>{ winBanner.style.display='none'; }, 2000);
-}
-
-/* click handler */
-async function onPick(btn){
-  if(attempts<=0 || btn.disabled) return;
-  attempts--; triesEl.textContent = 'Осталось попыток: '+attempts;
-  btn.disabled=true; btn.style.opacity='.55';
-
-  await flyToLock(btn);
-  openChestFlash();
-
-  const prize = pickPrize();
-  prizeText.textContent = 'Поздравляем! Вы выиграли: '+prize.label;
-
-  if(prize.ticket){ celebrateFreeTicket(); }
-  else if(prize.confetti){ celebrate50(); }
-
-  if(attempts<=0){
-    document.querySelectorAll('button.key:not([disabled])').forEach(b=>{ b.disabled=true; b.style.opacity='.35'; b.style.cursor='default'; });
+async function pickKey(btn){
+  const r = btn.getBoundingClientRect(), f = btn.cloneNode(true),
+        L = document.querySelector('.lock').getBoundingClientRect();
+  Object.assign(f.style,{position:'fixed',left:r.left+'px',top:r.top+'px',width:r.width+'px',height:r.height+'px',zIndex:30,transformOrigin:'50% 50%'});
+  document.body.appendChild(f);
+  const dx=L.left+L.width/2-(r.left+r.width/2), dy=L.top+L.height/2-(r.top+r.height/2);
+  f.animate([{transform:'translate(0,0) scale(1)'},
+             {transform:`translate(${dx*0.6}px,${dy*0.6}px) scale(1.1)`,offset:.7},
+             {transform:`translate(${dx}px,${dy}px) scale(.62)`}],
+            {duration:720,easing:'cubic-bezier(.2,.8,.2,1)'}).onfinish=()=>{
+              f.remove(); openChest();
+            };
+  function openChest(){
+    document.querySelector('.lock').animate([{filter:'brightness(1.1)'},{filter:'brightness(1.7)'},{filter:'brightness(1.1)'}],{duration:480});
+    chest.classList.add('open');
+    const prize = weighted();
+    setTimeout(()=>{
+      showTicket(prize);
+      if(prize==='50' || prize==='free') confetti(prize==='free'?520:360);
+      setTimeout(()=>chest.classList.remove('open'),900);
+    },520);
   }
 }
-
-/* parallax tilt */
-(function(){
-  const wrap = document.getElementById('chestWrap');
-  const board = document.getElementById('board');
-  let rx=0, ry=0, trX=0, trY=0;
-  const lerp=(a,b,t)=>a+(b-a)*t;
-  (function loop(){ rx=lerp(rx,trY*.08,.08); ry=lerp(ry,trX*.1,.08); wrap.style.transform=`rotateX(${rx}deg) rotateY(${ry}deg)`; requestAnimationFrame(loop)})();
-  board.addEventListener('pointermove',e=>{
-    const r=board.getBoundingClientRect();
-    const x=(e.clientX-r.left)/r.width-0.5;
-    const y=(e.clientY-r.top)/r.height-0.5;
-    trX = x*10; trY = -y*8;
-  },{passive:true});
-  board.addEventListener('pointerleave',()=>{ trX=0; trY=0; },{passive:true});
-})();
+/* билеты (металлические) + форма */
+const label = t => t==='10'?'10% скидка':t==='15'?'15% скидка':t==='20'?'20% скидка':t==='50'?'50% скидка':'Бесплатный билет';
+const tclass = t => t==='10'?'t-steel':t==='15'?'t-bronze':t==='20'?'t-silver':t==='50'?'t-gold':'t-plat';
+function showTicket(t){
+  const o=document.createElement('div'); o.className='overlay';
+  o.innerHTML=`<div class="modal">
+    <div class="ticket ${tclass(t)}">
+      <h3>Поздравляем!</h3>
+      <p>Вы выиграли: <b>${label(t)}</b></p>
+      <div class="actions">
+        <button class="btn" id="next">Далее</button>
+        <button class="btn" id="close" style="background:linear-gradient(180deg,#7a8b9d,#4e5a6a)">Закрыть</button>
+      </div>
+    </div>
+  </div>`;
+  document.body.appendChild(o);
+  o.querySelector('#close').onclick=()=>o.remove();
+  o.querySelector('#next').onclick=()=>showForm(label(t), o);
+}
+function showForm(prize, o){
+  o.innerHTML=`<div class="modal">
+    <form class="grid" id="form">
+      <h3 style="margin:0;font-family:Cinzel,serif;text-align:center">Получить приз</h3>
+      <div class="field"><label>ФИО</label><input class="input" name="fio" placeholder="Имя Фамилия" required></div>
+      <div class="field"><label>Юзернейм Telegram</label><input class="input" name="tg" placeholder="@username" required></div>
+      <input type="hidden" name="prize" value="${prize}">
+      <button class="btn" type="submit">Отправить</button>
+      <div class="msg" id="msg"></div>
+    </form>
+  </div>`;
+  const form=o.querySelector('#form'), msg=o.querySelector('#msg');
+  form.onsubmit=async e=>{
+    e.preventDefault(); msg.textContent='Отправляем…';
+    const data=Object.fromEntries(new FormData(form).entries());
+    try{
+      const res=await fetch('/api/send',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)});
+      if(!res.ok) throw 0;
+      msg.textContent='Готово! Мы получили ваши данные.'; form.querySelector('button').disabled=true;
+    }catch{ msg.textContent='Готово! (офлайн-режим) Сохраните скрин для подтверждения.'; form.querySelector('button').disabled=true; }
+  }
+}
+/* конфетти на весь экран */
+function confetti(n=360){
+  const c=document.getElementById('confetti'), x=c.getContext('2d'), d=Math.max(1,devicePixelRatio||1);
+  const rs=()=>{c.width=innerWidth*d; c.height=innerHeight*d; x.setTransform(d,0,0,d,0,0)}; rs();
+  let a=[]; const colors=['#ffd34d','#ff5f7a','#9ad4ff','#ffeea8','#b1ffb0','#f7a8ff'];
+  for(let i=0;i<n;i++) a.push({x:Math.random()*innerWidth,y:-20-Math.random()*innerHeight*.3,r:4+Math.random()*6,c:colors[(Math.random()*colors.length)|0],al:.95,vy:2+Math.random()*3,vx:-1+Math.random()*2,rot:Math.random()*360,vr:-3+Math.random()*6});
+  let id; (function tick(){
+    x.clearRect(0,0,innerWidth,innerHeight);
+    a.forEach(p=>{p.x+=p.vx;p.y+=p.vy;p.rot+=p.vr;p.al-=.0032;
+      x.save();x.globalAlpha=Math.max(0,p.al);x.translate(p.x,p.y);x.rotate(p.rot*Math.PI/180);
+      x.fillStyle=p.c;x.fillRect(-p.r,-p.r/2,p.r*2,p.r);x.restore();});
+    a=a.filter(p=>p.al>0 && p.y<innerHeight+40);
+    if(a.length) id=requestAnimationFrame(tick); else cancelAnimationFrame(id);
+  })();
+  addEventListener('resize', rs, {once:true});
+}
+/* 100vh фиксер */
+function setVH(){ document.documentElement.style.setProperty('--vh', window.innerHeight + 'px'); }
+setVH(); addEventListener('resize', setVH);
 </script>
 </body>
 </html>
