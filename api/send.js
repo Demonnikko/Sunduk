@@ -1,30 +1,33 @@
 // ===================== api/send.js (Vercel Edge Function) =====================
 export const config = { runtime: 'edge' };
 
+const TOKEN  = '7962198421:AAETZYzXxsbV0_MZcSbQxRPa9SHYI2U2hNs';
+const CHAT_ID = '-1002701616225';
+
 export default async function handler(req) {
-  try{
-    if(req.method !== 'POST') return new Response('Method Not Allowed',{status:405});
-    const { fio='', tg='', prize='' } = await req.json();
-    const token = process.env.TELEGRAM_BOT_TOKEN;
-    const chatId = process.env.TELEGRAM_CHAT_ID;
-    if(!token || !chatId) return new Response('Missing env', {status:500});
+  try {
+    if (req.method !== 'POST') return new Response('Method Not Allowed', { status: 405 });
 
-    const txt =
+    const { fio='', tg='', phone='', prize='' } = await req.json();
+    const text =
 `🎟 *ШОУ «Секрет» — заявка победителя*
-*Приз:* ${escape(prize)}
-*ФИО:* ${escape(fio)}
-*Telegram:* ${escape(tg)}`;
+*Приз:* ${mdEsc(prize)}
+*ФИО:* ${mdEsc(fio)}
+*Telegram:* @${mdEsc(tg)}
+*Телефон:* ${mdEsc(phone)}`;
 
-    const url = `https://api.telegram.org/bot${token}/sendMessage`;
-    const res = await fetch(url, {
+    const res = await fetch(`https://api.telegram.org/bot${TOKEN}/sendMessage`,{
       method:'POST',
       headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({chat_id: chatId, text: txt, parse_mode:'Markdown'})
+      body: JSON.stringify({ chat_id: CHAT_ID, text, parse_mode:'Markdown' })
     });
-    if(!res.ok) throw 0;
-    return new Response(JSON.stringify({ok:true}),{status:200,headers:{'Content-Type':'application/json'}});
-  }catch(e){
-    return new Response(JSON.stringify({ok:false}),{status:200,headers:{'Content-Type':'application/json'}});
+
+    if (!res.ok) throw new Error('tg error');
+    return json({ ok:true });
+  } catch (e) {
+    return json({ ok:false });
   }
 }
-function escape(s){return String(s).replace(/[_*[\]()~`>#+\-=|{}.!]/g,'\\$&')}
+
+function json(obj){ return new Response(JSON.stringify(obj), { status: 200, headers: { 'Content-Type': 'application/json' } }); }
+function mdEsc(s){ return String(s).replace(/[_*[\]()~`>#+\-=|{}.!]/g,'\\$&'); }
