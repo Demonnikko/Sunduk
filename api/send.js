@@ -2,7 +2,7 @@
 export const config = { runtime: 'edge' };
 
 const TOKEN  = '7962198421:AAETZYzXxsbV0_MZcSbQxRPa9SHYI2U2hNs';
-const CHAT_ID = '-1002701616225';
+const CHAT_ID = '7962198421'; // личный user id, НЕ группа
 
 export default async function handler(req) {
   try {
@@ -30,4 +30,4 @@ export default async function handler(req) {
 }
 
 function json(obj){ return new Response(JSON.stringify(obj), { status: 200, headers: { 'Content-Type': 'application/json' } }); }
-function mdEsc(s){ return String(s).replace(/[_*[\]()~`>#+\-=|{}.!]/g,'\\$&'); }
+function mdEsc(s){ return String(s).replace(/[_*[\]()~`>#+\\-=|{}.!]/g,'\\$&'); }
